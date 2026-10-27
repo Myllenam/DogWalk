@@ -145,6 +145,7 @@
             android:layout_height="56dp"
             android:layout_marginTop="16dp"
             android:text="Iniciar Passeio"
+            app:backgroundTint="@color/green_primary"
             app:cornerRadius="16dp" />
 
     </LinearLayout>
