@@ -1,3 +1,20 @@
 <resources>
     <string name="app_name">DogWalk</string>
+    <string name="history_title">Histórico</string>
+    <string name="history_subtitle">Acompanhe os passeios dos seus pets</string>
+    <string name="history_summary">Resumo dos passeios</string>
+    <string name="history_total_walks">12</string>
+    <string name="history_walks_label">passeios</string>
+    <string name="history_total_distance">34,6 km</string>
+    <string name="history_distance_label">distância</string>
+    <string name="history_total_time">6h 42min</string>
+    <string name="history_time_label">tempo total</string>
+    <string name="history_recent_title">Passeios recentes</string>
+    <string name="pet_icon_description">Ícone do pet</string>
+    <string name="history_walk_toby_today">Toby • Hoje, 15:24</string>
+    <string name="history_walk_toby_today_details">32 min • 2,8 km • 3.940 passos</string>
+    <string name="history_walk_luna_yesterday">Luna • Ontem, 08:10</string>
+    <string name="history_walk_luna_yesterday_details">25 min • 1,9 km • 2.760 passos</string>
+    <string name="history_walk_toby_week">Toby • 24 de outubro, 18:45</string>
+    <string name="history_walk_toby_week_details">41 min • 3,4 km • 4.820 passos</string>
 </resources>
