@@ -40,6 +40,8 @@ dependencies {
     implementation(libs.play.services.location)
     implementation(libs.osmdroid.android)
     implementation(libs.play.services.maps)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.gson)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)

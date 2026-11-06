@@ -2,7 +2,44 @@ package com.example.dogwalk.data.repository
 
 import com.example.dogwalk.model.Pet
 
+import com.example.dogwalk.data.remote.RetrofitClient
+
 object PetRepository {
+
+    suspend fun getBreeds(): List<String> {
+
+        val response =
+            RetrofitClient.api.getBreeds()
+
+        return response.message
+            .flatMap { (breed, subBreeds) ->
+
+                if (subBreeds.isEmpty()) {
+
+                    listOf(
+                        breed.replaceFirstChar {
+                            it.uppercase()
+                        }
+                    )
+
+                } else {
+
+                    subBreeds.map { subBreed ->
+
+                        "${
+                            subBreed.replaceFirstChar {
+                                it.uppercase()
+                            }
+                        } ${
+                            breed.replaceFirstChar {
+                                it.uppercase()
+                            }
+                        }"
+                    }
+                }
+            }
+            .sorted()
+    }
 
     private val pets = mutableListOf(
         Pet(

@@ -130,7 +130,10 @@ class PetFormFragment : Fragment() {
                 R.id.edtBirthDate
             )
 
-        setupBreedSpinner()
+
+        observeBreeds()
+
+        viewModel.loadBreeds()
 
         if (petId == 0L) {
 
@@ -167,36 +170,64 @@ class PetFormFragment : Fragment() {
         }
     }
 
-    private fun setupBreedSpinner() {
+    private fun observeBreeds() {
 
-        val breeds = listOf(
-            "Selecione a raça",
-            "Golden Retriever",
-            "Labrador Retriever",
-            "Border Collie",
-            "Shih-tzu",
-            "Poodle",
-            "Beagle",
-            "Bulldog",
-            "Pastor Alemão",
-            "Vira-lata",
-            "Outra"
-        )
+        viewModel.breeds.observe(
+            viewLifecycleOwner
+        ) { breeds ->
 
-        val adapter =
-            ArrayAdapter(
-                requireContext(),
-                android.R.layout.simple_spinner_item,
-                breeds
+            val breedList =
+                mutableListOf(
+                    "Selecione a raça"
+                )
+
+            breedList.addAll(breeds)
+
+            val adapter =
+                ArrayAdapter(
+                    requireContext(),
+                    android.R.layout.simple_spinner_item,
+                    breedList
+                )
+
+            adapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
             )
 
-        adapter.setDropDownViewResource(
-            android.R.layout.simple_spinner_dropdown_item
-        )
+            spinnerBreed.adapter = adapter
 
-        spinnerBreed.adapter = adapter
+            if (petId != 0L) {
+                selectCurrentBreed()
+            }
+        }
     }
 
+    private fun selectCurrentBreed() {
+
+        val pet =
+            viewModel.getPet(petId)
+                ?: return
+
+        val adapter =
+            spinnerBreed.adapter
+                ?: return
+
+        for (i in 0 until adapter.count) {
+
+            if (
+                adapter.getItem(i)
+                    .toString()
+                    .equals(
+                        pet.breed,
+                        ignoreCase = true
+                    )
+            ) {
+
+                spinnerBreed.setSelection(i)
+                break
+            }
+        }
+    }
     private fun loadPet() {
 
         val pet =
@@ -205,27 +236,9 @@ class PetFormFragment : Fragment() {
 
         edtName.setText(pet.name)
 
-        val adapter =
-            spinnerBreed.adapter
-
-        for (i in 0 until adapter.count) {
-
-            if (
-                adapter.getItem(i)
-                    .toString() == pet.breed
-            ) {
-
-                spinnerBreed.setSelection(i)
-                break
-            }
-        }
-
         if (pet.sex == "Macho") {
-
             radioMale.isChecked = true
-
         } else {
-
             radioFemale.isChecked = true
         }
 
@@ -233,13 +246,17 @@ class PetFormFragment : Fragment() {
             pet.birthDate
         )
 
-        pet.photoUri?.let {
+        pet.photoUri?.let { uri ->
 
-            photoUri = Uri.parse(it)
+            photoUri = Uri.parse(uri)
 
-            imgPet.setImageURI(
-                photoUri
-            )
+            try {
+                imgPet.setImageURI(photoUri)
+            } catch (e: Exception) {
+                imgPet.setImageResource(
+                    R.drawable.ic_pets
+                )
+            }
         }
     }
 
