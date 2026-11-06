@@ -223,7 +223,7 @@ Room
 
 ---
 
-# 🗺️ Google Maps e GPS
+# 🗺️ Open Street Map e GPS
 
 Durante um passeio, o aplicativo utiliza os serviços de localização do dispositivo para acompanhar o usuário.
 
