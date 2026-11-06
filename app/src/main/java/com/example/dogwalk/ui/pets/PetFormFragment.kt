@@ -31,6 +31,10 @@ class PetFormFragment : Fragment() {
     private var petId: Long = 0
     private var photoUri: Uri? = null
 
+    // Guarda a raça atual enquanto Room e Retrofit
+    // carregam de forma assíncrona.
+    private var currentBreed: String? = null
+
     private lateinit var imgPet: ImageView
     private lateinit var edtName: EditText
     private lateinit var spinnerBreed: Spinner
@@ -44,7 +48,6 @@ class PetFormFragment : Fragment() {
         ) { success ->
 
             if (success && photoUri != null) {
-
                 imgPet.setImageURI(photoUri)
             }
         }
@@ -72,6 +75,10 @@ class PetFormFragment : Fragment() {
             savedInstanceState
         )
 
+        // -------------------------
+        // ViewModel
+        // -------------------------
+
         viewModel =
             ViewModelProvider(this)[
                 PetFormViewModel::class.java
@@ -79,6 +86,10 @@ class PetFormFragment : Fragment() {
 
         petId =
             arguments?.getLong("petId") ?: 0
+
+        // -------------------------
+        // Views
+        // -------------------------
 
         val tvTitle =
             view.findViewById<TextView>(
@@ -130,10 +141,19 @@ class PetFormFragment : Fragment() {
                 R.id.edtBirthDate
             )
 
+        // -------------------------
+        // Observers
+        // -------------------------
 
+        observePet()
         observeBreeds()
 
+        // Retrofit
         viewModel.loadBreeds()
+
+        // -------------------------
+        // Cadastro ou edição
+        // -------------------------
 
         if (petId == 0L) {
 
@@ -145,8 +165,13 @@ class PetFormFragment : Fragment() {
             tvTitle.text = "Editar Pet"
             btnSave.text = "Salvar alterações"
 
-            loadPet()
+            // Agora o pet vem do Room.
+            viewModel.loadPet(petId)
         }
+
+        // -------------------------
+        // Eventos
+        // -------------------------
 
         btnBack.setOnClickListener {
 
@@ -170,6 +195,70 @@ class PetFormFragment : Fragment() {
         }
     }
 
+    // =========================================================
+    // PET - ROOM
+    // =========================================================
+
+    private fun observePet() {
+
+        viewModel.pet.observe(
+            viewLifecycleOwner
+        ) { pet ->
+
+            pet ?: return@observe
+
+            edtName.setText(
+                pet.name
+            )
+
+            // Guardamos porque talvez o Retrofit ainda
+            // não tenha carregado o Spinner.
+            currentBreed = pet.breed
+
+            if (pet.sex == "Macho") {
+
+                radioMale.isChecked = true
+
+            } else {
+
+                radioFemale.isChecked = true
+            }
+
+            edtBirthDate.setText(
+                pet.birthDate
+            )
+
+            pet.photoUri?.let { uri ->
+
+                photoUri =
+                    Uri.parse(uri)
+
+                try {
+
+                    imgPet.setImageURI(
+                        photoUri
+                    )
+
+                } catch (e: Exception) {
+
+                    imgPet.setImageResource(
+                        R.drawable.ic_pets
+                    )
+                }
+            }
+
+            // Caso as raças já tenham chegado,
+            // seleciona imediatamente.
+            selectCurrentBreed(
+                pet.breed
+            )
+        }
+    }
+
+    // =========================================================
+    // RAÇAS - RETROFIT
+    // =========================================================
+
     private fun observeBreeds() {
 
         viewModel.breeds.observe(
@@ -181,7 +270,9 @@ class PetFormFragment : Fragment() {
                     "Selecione a raça"
                 )
 
-            breedList.addAll(breeds)
+            breedList.addAll(
+                breeds
+            )
 
             val adapter =
                 ArrayAdapter(
@@ -194,19 +285,23 @@ class PetFormFragment : Fragment() {
                 android.R.layout.simple_spinner_dropdown_item
             )
 
-            spinnerBreed.adapter = adapter
+            spinnerBreed.adapter =
+                adapter
 
-            if (petId != 0L) {
-                selectCurrentBreed()
+            // Se estamos editando e o pet já veio do Room,
+            // seleciona a raça depois que o Retrofit terminar.
+            currentBreed?.let { breed ->
+
+                selectCurrentBreed(
+                    breed
+                )
             }
         }
     }
 
-    private fun selectCurrentBreed() {
-
-        val pet =
-            viewModel.getPet(petId)
-                ?: return
+    private fun selectCurrentBreed(
+        currentBreed: String
+    ) {
 
         val adapter =
             spinnerBreed.adapter
@@ -214,13 +309,16 @@ class PetFormFragment : Fragment() {
 
         for (i in 0 until adapter.count) {
 
-            if (
+            val breed =
                 adapter.getItem(i)
-                    .toString()
-                    .equals(
-                        pet.breed,
-                        ignoreCase = true
-                    )
+                    ?.toString()
+                    ?: continue
+
+            if (
+                breed.equals(
+                    currentBreed,
+                    ignoreCase = true
+                )
             ) {
 
                 spinnerBreed.setSelection(i)
@@ -228,46 +326,22 @@ class PetFormFragment : Fragment() {
             }
         }
     }
-    private fun loadPet() {
 
-        val pet =
-            viewModel.getPet(petId)
-                ?: return
-
-        edtName.setText(pet.name)
-
-        if (pet.sex == "Macho") {
-            radioMale.isChecked = true
-        } else {
-            radioFemale.isChecked = true
-        }
-
-        edtBirthDate.setText(
-            pet.birthDate
-        )
-
-        pet.photoUri?.let { uri ->
-
-            photoUri = Uri.parse(uri)
-
-            try {
-                imgPet.setImageURI(photoUri)
-            } catch (e: Exception) {
-                imgPet.setImageResource(
-                    R.drawable.ic_pets
-                )
-            }
-        }
-    }
+    // =========================================================
+    // SALVAR
+    // =========================================================
 
     private fun savePet() {
 
         val name =
-            edtName.text.toString().trim()
+            edtName.text
+                .toString()
+                .trim()
 
         val breed =
             spinnerBreed.selectedItem
-                .toString()
+                ?.toString()
+                .orEmpty()
 
         val sex =
             when {
@@ -287,6 +361,10 @@ class PetFormFragment : Fragment() {
                 .toString()
                 .trim()
 
+        // -------------------------
+        // Validações
+        // -------------------------
+
         if (name.isEmpty()) {
 
             edtName.error =
@@ -296,8 +374,8 @@ class PetFormFragment : Fragment() {
         }
 
         if (
-            breed ==
-            "Selecione a raça"
+            breed.isEmpty() ||
+            breed == "Selecione a raça"
         ) {
 
             Toast.makeText(
@@ -328,6 +406,10 @@ class PetFormFragment : Fragment() {
             return
         }
 
+        // -------------------------
+        // Room
+        // -------------------------
+
         viewModel.savePet(
             id = petId,
             name = name,
@@ -340,10 +422,11 @@ class PetFormFragment : Fragment() {
 
         Toast.makeText(
             requireContext(),
-            if (petId == 0L)
+            if (petId == 0L) {
                 "Pet cadastrado com sucesso!"
-            else
-                "Pet atualizado com sucesso!",
+            } else {
+                "Pet atualizado com sucesso!"
+            },
             Toast.LENGTH_SHORT
         ).show()
 
@@ -351,9 +434,14 @@ class PetFormFragment : Fragment() {
             .popBackStack()
     }
 
+    // =========================================================
+    // CÂMERA
+    // =========================================================
+
     private fun openCamera() {
 
-        photoUri = createImageUri()
+        photoUri =
+            createImageUri()
 
         takePictureLauncher.launch(
             photoUri
@@ -369,6 +457,7 @@ class PetFormFragment : Fragment() {
             )
 
         if (!imageDirectory.exists()) {
+
             imageDirectory.mkdirs()
         }
 
@@ -384,6 +473,10 @@ class PetFormFragment : Fragment() {
             file
         )
     }
+
+    // =========================================================
+    // DATA DE NASCIMENTO
+    // =========================================================
 
     private fun openDatePicker() {
 
@@ -417,6 +510,7 @@ class PetFormFragment : Fragment() {
                 )
             )
 
+        // Não permite nascimento no futuro.
         dialog.datePicker.maxDate =
             System.currentTimeMillis()
 
