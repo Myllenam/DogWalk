@@ -10,12 +10,24 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {
 
-    fun showWalkScreen() {
+    fun showWalkScreen(petId: Long) {
         findViewById<BottomNavigationView>(R.id.bottomNavigation).visibility = android.view.View.GONE
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, WalkFragment())
+            .replace(
+                R.id.fragmentContainer,
+                WalkFragment().apply {
+                    arguments = Bundle().apply {
+                        putLong(WalkFragment.ARG_PET_ID, petId)
+                    }
+                }
+            )
             .addToBackStack("walk")
             .commit()
+    }
+
+    fun finishWalkScreen() {
+        supportFragmentManager.popBackStack()
+        findViewById<BottomNavigationView>(R.id.bottomNavigation).visibility = android.view.View.VISIBLE
     }
 
     override fun onBackPressed() {

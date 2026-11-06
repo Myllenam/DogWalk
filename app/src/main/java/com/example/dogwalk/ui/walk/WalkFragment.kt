@@ -6,12 +6,20 @@ import android.location.Location
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
+import android.os.Build
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener
+import android.hardware.SensorManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
+import com.example.dogwalk.MainActivity
 import com.example.dogwalk.R
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
@@ -26,14 +34,26 @@ import org.osmdroid.views.overlay.Polyline
 import java.io.File
 import java.util.Locale
 
-class WalkFragment : Fragment() {
+class WalkFragment : Fragment(), SensorEventListener {
+
+    companion object {
+        const val ARG_PET_ID = "petId"
+    }
 
     private val locationRequestCode = 10
+    private val activityRecognitionRequestCode = 11
     private val handler = Handler(Looper.getMainLooper())
     private var map: MapView? = null
     private var lastLocation: Location? = null
     private var distanceMeters = 0f
     private var elapsedSeconds = 0L
+    private val startedAt = System.currentTimeMillis()
+    private val elapsedStart = SystemClock.elapsedRealtime()
+    private var stepBaseline: Float? = null
+    private var steps = 0
+    private var isFinished = false
+    private lateinit var viewModel: WalkViewModel
+    private var sensorManager: SensorManager? = null
     private lateinit var timerText: TextView
     private lateinit var distanceText: TextView
 
@@ -45,7 +65,7 @@ class WalkFragment : Fragment() {
 
     private val timer = object : Runnable {
         override fun run() {
-            elapsedSeconds++
+            elapsedSeconds = (SystemClock.elapsedRealtime() - elapsedStart) / 1000
             timerText.text = formatDuration(elapsedSeconds)
             handler.postDelayed(this, 1000)
         }
@@ -75,6 +95,7 @@ class WalkFragment : Fragment() {
     ): View = inflater.inflate(R.layout.fragment_walk, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        viewModel = ViewModelProvider(this)[WalkViewModel::class.java]
         timerText = view.findViewById(R.id.walkTimer)
         distanceText = view.findViewById(R.id.walkDistance)
         map = view.findViewById<MapView>(R.id.walkMap).apply {
@@ -84,13 +105,53 @@ class WalkFragment : Fragment() {
             controller.setCenter(GeoPoint(-23.5505, -46.6333))
         }
         view.findViewById<View>(R.id.btnFinishWalk).setOnClickListener {
-            requireActivity().onBackPressedDispatcher.onBackPressed()
+            finishWalk()
         }
         view.findViewById<View>(R.id.btnCloseWalk).setOnClickListener {
             requireActivity().onBackPressedDispatcher.onBackPressed()
         }
         handler.post(timer)
         enableLocation()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q &&
+            ActivityCompat.checkSelfPermission(
+                requireContext(),
+                Manifest.permission.ACTIVITY_RECOGNITION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(
+                arrayOf(Manifest.permission.ACTIVITY_RECOGNITION),
+                activityRecognitionRequestCode
+            )
+        } else {
+            registerStepSensor()
+        }
+    }
+
+    private fun finishWalk() {
+        if (isFinished) return
+        isFinished = true
+        elapsedSeconds = maxOf(
+            elapsedSeconds,
+            (SystemClock.elapsedRealtime() - elapsedStart) / 1000
+        )
+        viewModel.finishWalk(
+            petId = requireArguments().getLong(ARG_PET_ID),
+            startedAt = startedAt,
+            durationSeconds = elapsedSeconds,
+            distanceKm = distanceMeters / 1000.0,
+            steps = steps,
+            onSaved = {
+                (activity as? MainActivity)?.finishWalkScreen()
+            },
+            onError = {
+                android.widget.Toast.makeText(
+                    requireContext(),
+                    it,
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+                isFinished = false
+            }
+        )
     }
 
     private fun enableLocation() {
@@ -155,6 +216,18 @@ class WalkFragment : Fragment() {
         ) {
             enableLocation()
         }
+        if (requestCode == activityRecognitionRequestCode &&
+            grantResults.firstOrNull() == PackageManager.PERMISSION_GRANTED
+        ) {
+            registerStepSensor()
+        }
+    }
+
+    private fun registerStepSensor() {
+        sensorManager = requireContext().getSystemService(SensorManager::class.java)
+        sensorManager?.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)?.let {
+            sensorManager?.registerListener(this, it, SensorManager.SENSOR_DELAY_NORMAL)
+        }
     }
 
     private fun formatDuration(seconds: Long): String =
@@ -182,7 +255,17 @@ class WalkFragment : Fragment() {
             LocationServices.getFusedLocationProviderClient(it)
                 .removeLocationUpdates(locationCallback)
         }
+        sensorManager?.unregisterListener(this)
+        sensorManager = null
         map = null
         super.onDestroyView()
     }
+
+    override fun onSensorChanged(event: SensorEvent) {
+        val totalSteps = event.values.firstOrNull() ?: return
+        if (stepBaseline == null) stepBaseline = totalSteps
+        steps = (totalSteps - stepBaseline!!).toInt().coerceAtLeast(0)
+    }
+
+    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) = Unit
 }
