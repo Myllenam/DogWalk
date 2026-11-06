@@ -15,7 +15,7 @@ A proposta do aplicativo é permitir que o usuário:
 - cadastre seus pets;
 - tire uma foto do animal utilizando a câmera;
 - selecione um pet para iniciar um passeio;
-- acompanhe o passeio utilizando localização e Google Maps;
+- acompanhe o passeio utilizando localização e Open Street Map;
 - visualize duração, distância e quantidade de passos;
 - finalize e salve os passeios;
 - consulte o histórico de passeios realizados;
