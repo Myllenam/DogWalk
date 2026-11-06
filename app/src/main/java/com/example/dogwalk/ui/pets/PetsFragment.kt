@@ -49,7 +49,7 @@ class PetsFragment : Fragment() {
             )
 
         adapter = PetAdapter(
-            viewModel.getPets()
+            emptyList()
         ) { pet ->
 
             openPetForm(pet.id)
@@ -60,20 +60,19 @@ class PetsFragment : Fragment() {
 
         recyclerPets.adapter = adapter
 
+        viewModel.pets.observe(
+            viewLifecycleOwner
+        ) { pets ->
+
+            adapter.updatePets(pets)
+        }
+
         fabAddPet.setOnClickListener {
+
             openPetForm(0)
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-
-        if (::adapter.isInitialized) {
-            adapter.updatePets(
-                viewModel.getPets()
-            )
-        }
-    }
 
     private fun openPetForm(petId: Long) {
 
