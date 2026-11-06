@@ -67,6 +67,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/homeWeekWalks"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="4 passeios"
@@ -74,6 +75,7 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/homeWeekSummary"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="12,4 km • 3h 15min • 18.420 passos" />
@@ -104,6 +106,7 @@
                 android:padding="16dp">
 
                 <ImageView
+                    android:id="@+id/homeLastWalkImage"
                     android:layout_width="56dp"
                     android:layout_height="56dp"
                     android:src="@drawable/ic_pets" />
@@ -116,17 +119,20 @@
                     android:layout_marginStart="12dp">
 
                     <TextView
+                        android:id="@+id/homeLastWalkPet"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Toby"
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/homeLastWalkDate"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Hoje, 15:24" />
 
                     <TextView
+                        android:id="@+id/homeLastWalkDetails"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="32 min • 2,8 km • 3.940 passos" />
