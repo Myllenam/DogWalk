@@ -353,7 +353,6 @@ A navegação principal possui:
 Home
 Pets
 Histórico
-Perfil
 ```
 
 Telas secundárias são abertas a partir desses Fragments.
@@ -441,9 +440,6 @@ com.example.dogwalk
 │   │   ├── WalkDetailsFragment.kt
 │   │   └── WalkAdapter.kt
 │   │
-│   └── profile
-│       ├── ProfileFragment.kt
-│       └── ProfileViewModel.kt
 │
 └── MainActivity.kt
 ```
