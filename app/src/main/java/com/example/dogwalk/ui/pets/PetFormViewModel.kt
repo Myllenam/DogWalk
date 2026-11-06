@@ -34,6 +34,13 @@ class PetFormViewModel(
     val loadingBreeds: LiveData<Boolean> =
         _loadingBreeds
 
+    fun deletePet() {
+        val pet = _pet.value ?: return
+
+        viewModelScope.launch {
+            repository.deletePet(pet)
+        }
+    }
     init {
 
         val petDao =
