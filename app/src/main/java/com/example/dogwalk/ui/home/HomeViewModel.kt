@@ -5,7 +5,7 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.asLiveData
 import com.example.dogwalk.data.local.database.DogWalkDatabase
-import com.example.dogwalk.data.model.Walk
+import com.example.dogwalk.model.Walk
 import com.example.dogwalk.data.repository.WalkRepository
 import com.example.dogwalk.data.repository.PetRepository
 

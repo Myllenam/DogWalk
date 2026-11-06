@@ -8,7 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.dogwalk.R
-import com.example.dogwalk.data.model.Walk
+import com.example.dogwalk.model.Walk
 import com.example.dogwalk.model.Pet
 import java.text.DateFormat
 import java.util.Date

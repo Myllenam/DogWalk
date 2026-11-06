@@ -4,7 +4,7 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.dogwalk.data.local.database.DogWalkDatabase
-import com.example.dogwalk.data.model.Walk
+import com.example.dogwalk.model.Walk
 import com.example.dogwalk.data.repository.WalkRepository
 import com.example.dogwalk.data.repository.PetRepository
 import kotlinx.coroutines.launch
