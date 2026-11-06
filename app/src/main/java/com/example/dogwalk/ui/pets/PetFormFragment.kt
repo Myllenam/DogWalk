@@ -91,6 +91,11 @@ class PetFormFragment : Fragment() {
         // Views
         // -------------------------
 
+        val btnDelete =
+            view.findViewById<MaterialButton>(
+                R.id.btnDelete
+            )
+
         val tvTitle =
             view.findViewById<TextView>(
                 R.id.tvFormTitle
@@ -160,10 +165,17 @@ class PetFormFragment : Fragment() {
             tvTitle.text = "Novo Pet"
             btnSave.text = "Cadastrar Pet"
 
+            btnDelete.visibility =
+                View.GONE
+
+
         } else {
 
             tvTitle.text = "Editar Pet"
             btnSave.text = "Salvar alterações"
+
+            btnDelete.visibility =
+                View.VISIBLE
 
             // Agora o pet vem do Room.
             viewModel.loadPet(petId)
@@ -177,6 +189,11 @@ class PetFormFragment : Fragment() {
 
             parentFragmentManager
                 .popBackStack()
+        }
+
+        btnDelete.setOnClickListener {
+
+            showDeleteConfirmation()
         }
 
         btnCamera.setOnClickListener {
@@ -253,6 +270,44 @@ class PetFormFragment : Fragment() {
                 pet.breed
             )
         }
+    }
+
+    // =========================================================
+    // Deletar pet
+    // =========================================================
+    private fun deletePet() {
+
+        viewModel.deletePet()
+
+        Toast.makeText(
+            requireContext(),
+            "Pet excluído com sucesso!",
+            Toast.LENGTH_SHORT
+        ).show()
+
+        parentFragmentManager
+            .popBackStack()
+    }
+    private fun showDeleteConfirmation() {
+
+        androidx.appcompat.app.AlertDialog
+            .Builder(requireContext())
+            .setTitle("Excluir pet")
+            .setMessage(
+                "Deseja realmente excluir este pet? " +
+                        "Todos os passeios relacionados a ele também serão excluídos."
+            )
+            .setNegativeButton(
+                "Cancelar",
+                null
+            )
+            .setPositiveButton(
+                "Excluir"
+            ) { _, _ ->
+
+                deletePet()
+            }
+            .show()
     }
 
     // =========================================================
