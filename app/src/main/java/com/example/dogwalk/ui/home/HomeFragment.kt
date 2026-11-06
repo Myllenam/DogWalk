@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import com.example.dogwalk.R
 import com.example.dogwalk.MainActivity
-import com.example.dogwalk.data.model.Walk
+import com.example.dogwalk.model.Walk
 import com.example.dogwalk.model.Pet
 import java.text.DateFormat
 import java.util.Calendar

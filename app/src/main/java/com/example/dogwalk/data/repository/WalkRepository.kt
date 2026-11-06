@@ -1,7 +1,7 @@
 package com.example.dogwalk.data.repository
 
 import com.example.dogwalk.data.local.dao.WalkDao
-import com.example.dogwalk.data.model.Walk
+import com.example.dogwalk.model.Walk
 import kotlinx.coroutines.flow.Flow
 
 class WalkRepository(private val walkDao: WalkDao) {
